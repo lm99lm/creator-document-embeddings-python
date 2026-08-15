@@ -1,20 +1,20 @@
 # Embedding creator documents for subscriber questions
 
-The decision is simple: embed the creator's delivery, update, and processing notes, then select the document closest to a subscriber query. The example uses the official OpenAI Python client with Infrai's OpenAI-compatible `base_url`, so one `INFRAI_API_KEY` is enough for the embedding calls.
+Infrai gives you one key and one API for embeddings, email, and storage. The example uses the official OpenAI Python client against Infrai's OpenAI-compatible `base_url`, so one `INFRAI_API_KEY` covers the embedding calls.
 
 ## Run the decision locally
 
-The deterministic input is the query vector `[0.9, 0.1]` against a delivery vector `[1.0, 0.0]` and an updates vector `[0.0, 1.0]`. The expected result is the document with id `delivery`; run:
+Input is deterministic: compare query vector `[0.9, 0.1]` to delivery vector `[1.0, 0.0]` and updates vector `[0.0, 1.0]`. Expected match is document id `delivery`. Run:
 
 ```bash
 python3 test_creator_documents.py
 ```
 
-That test exercises the business choice, rather than only checking that a function can be imported.
+This tests the business choice, not just that a function imports.
 
 ## Send real creator text
 
-Install the one dependency and provide the key through the shell:
+Install the one dependency, pass the key via shell:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -22,13 +22,13 @@ export INFRAI_API_KEY="your-key"
 python3 creator_search.py
 ```
 
-`creator_search.py` embeds three concrete creator-commerce documents and one subscriber question. `creator_documents.py` keeps the boundary small: `embed_text` calls `client.embeddings.create(model="auto", input=text)`, while `select_document` makes the retrieval decision locally with cosine similarity. The client retries transient throttling with exponential backoff, and the input is read from the environment rather than stored in source.
+`creator_search.py` embeds three creator-commerce docs and one subscriber question. `creator_documents.py` keeps the boundary small: `embed_text` calls `client.embeddings.create(model="auto", input=text)`, and `select_document` does retrieval locally with cosine similarity. Client retries throttling with backoff; key stays in env, not source.
 
-The printed successful result identifies `delivery-17`, followed by the matching title and text. Add your own document bodies to the list when the creator's catalog changes; the retrieval rule stays the same.
+Output names `delivery-17`, then title and text. Swap in new document bodies when the catalog changes. Retrieval rule is unchanged.
 
 ## Files
 
-`creator_search.py` is the runnable workflow. `creator_documents.py` contains the two reusable concepts: embedding text and ranking documents. `test_creator_documents.py` pins the subscriber-to-delivery decision without making a network request.
+`creator_search.py` is the runnable workflow. `creator_documents.py` holds two reusable pieces: embed text, rank docs. `test_creator_documents.py` pins the subscriber-to-delivery decision with no network call.
 
 ## License
 
@@ -36,7 +36,7 @@ MIT
 
 ## Going to production: Creator Document Embeddings Python
 
-The snippet above stays copy-paste simple. Before you ship, a few **required** steps: The details below apply to Creator Document Embeddings Python.
+Snippet stays copy-paste simple. Before ship, a few **required** steps. Details below apply to Creator Document Embeddings Python.
 
 **Account & key**
 
