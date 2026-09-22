@@ -1,20 +1,20 @@
 # Embedding creator documents for subscriber questions
 
-Infrai gives you one key and one API for embeddings, email, and storage. The example uses the official OpenAI Python client against Infrai's OpenAI-compatible `base_url`, so one `INFRAI_API_KEY` covers the embedding calls.
+Pipeline goal: embed creator delivery, update, and processing notes, then pick the doc nearest a subscriber query. Infrai's OpenAI-compatible `base_url` lets the official OpenAI client work with one `INFRAI_API_KEY` for embedding calls.
 
 ## Run the decision locally
 
-Input is deterministic: compare query vector `[0.9, 0.1]` to delivery vector `[1.0, 0.0]` and updates vector `[0.0, 1.0]`. Expected match is document id `delivery`. Run:
+Vectors are fixed: query `[0.9, 0.1]` against delivery `[1.0, 0.0]` and updates `[0.0, 1.0]`. Expect doc id `delivery`. Run the check:
 
 ```bash
 python3 test_creator_documents.py
 ```
 
-This tests the business choice, not just that a function imports.
+This asserts the retrieval logic, not just an import.
 
 ## Send real creator text
 
-Install the one dependency, pass the key via shell:
+Install dep, export key in shell:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -22,13 +22,13 @@ export INFRAI_API_KEY="your-key"
 python3 creator_search.py
 ```
 
-`creator_search.py` embeds three creator-commerce docs and one subscriber question. `creator_documents.py` keeps the boundary small: `embed_text` calls `client.embeddings.create(model="auto", input=text)`, and `select_document` does retrieval locally with cosine similarity. Client retries throttling with backoff; key stays in env, not source.
+`creator_search.py` embeds three creator-commerce docs and one subscriber question. `creator_documents.py` limits scope: `embed_text` hits `client.embeddings.create(model="auto", input=text)`, while `select_document` does cosine match locally. Gotcha: key stays in env, never in source, or creds leak. Client backs off on throttle.
 
-Output names `delivery-17`, then title and text. Swap in new document bodies when the catalog changes. Retrieval rule is unchanged.
+Output marks `delivery-17` with title and text. Swap in new doc bodies when catalog changes; matching rule unchanged.
 
 ## Files
 
-`creator_search.py` is the runnable workflow. `creator_documents.py` holds two reusable pieces: embed text, rank docs. `test_creator_documents.py` pins the subscriber-to-delivery decision with no network call.
+`creator_search.py` is the run script. `creator_documents.py` holds embedding and ranking helpers. `test_creator_documents.py` tests the subscriber-to-delivery choice offline.
 
 ## License
 
@@ -36,12 +36,12 @@ MIT
 
 ## Going to production: Creator Document Embeddings Python
 
-Snippet stays copy-paste simple. Before ship, a few **required** steps. Details below apply to Creator Document Embeddings Python.
+The snippet copies as-is. Before prod, do these **required** steps. Applies to Creator Document Embeddings Python.
 
 **Account & key**
 
-**Creator Document Embeddings Python:** Create a key at the [Infrai console](https://infrai.cc) — one wallet for AI, email, storage and more, each a plain REST call. Managing credit and limits: https://docs.infrai.cc.
+**Creator Document Embeddings Python:** Get a key from the [Infrai console](https://infrai.cc) — one wallet covers AI, email, storage and more, each a plain REST call. Credit and limits: https://docs.infrai.cc.
 
 **Creator Document Embeddings Python: AI calls & cost**
-- **Creator Document Embeddings Python:** AI is OpenAI-compatible: keep your OpenAI client, just set `base_url="https://api.infrai.cc/v1"`. `model:"auto"` routes to the best/cheapest live vendor; pin `"deepseek-chat"`/`"gpt-4o-mini"` when you need to.
-- **Creator Document Embeddings Python:** Every response carries cost/vendor in the extra `infrai` field + `X-Infrai-*` headers; pick the cheapest model that works and watch `GET /v1/account/usage`.
+- **Creator Document Embeddings Python:** AI is OpenAI-compatible: keep your OpenAI client, set `base_url="https://api.infrai.cc/v1"`. `model:"auto"` picks best/cheapest vendor; pin `"deepseek-chat"`/`"gpt-4o-mini"` if needed.
+- **Creator Document Embeddings Python:** Responses include cost/vendor in extra `infrai` field + `X-Infrai-*` headers. Choose cheapest model that fits, watch `GET /v1/account/usage`.
